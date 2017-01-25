@@ -1,0 +1,40 @@
+#!/usr/bin/env ruby
+
+require 'erb'
+require 'yaml'
+require 'ostruct'
+require 'rqrcode'
+
+TEMPLATE_PATH = 'page.erb'
+SIZE = 5 # big enough for a 64-char string
+
+def gpg_decrypt(path)
+  cmd = %w[gpg --decrypt]
+  cmd += ENV['BURN_GPG_ARGS'].split if ENV['BURN_GPG_ARGS']
+  cmd << path
+  IO.popen(cmd) {|gpg| gpg.read }
+end
+
+def qr(data)
+  RQRCode::QRCode.new(data, :size => SIZE, :level => :h)
+end
+
+def render_page(output_path, vars)
+  page_template = ERB.new(File.read(TEMPLATE_PATH), nil, '<>')
+  vars_binding = OpenStruct.new(vars).instance_eval { binding }
+  File.open(output_path, 'w') do |f|
+    f.write page_template.result(vars_binding)
+  end
+end
+
+ARGV.each do |path|
+  begin
+    secrets = YAML.load(gpg_decrypt(path))
+  rescue => err
+    STDERR.puts "Error loading gpg output as YAML: #{err}"
+    exit 1
+  end
+
+  output_path = path.sub(/\.yml\.gpg$/, '') + '.html'
+  render_page(output_path, :secret_qrcodes => secrets.map {|k, v| [k, v, qr(v)] })
+end
