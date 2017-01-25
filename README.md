@@ -1,7 +1,9 @@
 # Burn After Reading
 
 A tiny script to generate a printable HTML page (with QR codes) to back up
-your TOTP secrets, secret key shards (for SSSS), etc.
+your TOTP secrets,
+[SSSS](https://en.wikipedia.org/wiki/Shamir%27s_Secret_Sharing) passphrase
+shards, etc.
 
 ## Usage
 
