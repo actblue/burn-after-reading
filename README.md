@@ -1,7 +1,7 @@
 # Burn After Reading
 
-A tiny script to generate a printable HTML page to back up your TOTP secrets,
-secret key shards (for SSSS), etc.
+A tiny script to generate a printable HTML page (with QR codes) to back up
+your TOTP secrets, secret key shards (for SSSS), etc.
 
 ## Usage
 
