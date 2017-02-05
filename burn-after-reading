@@ -6,7 +6,6 @@ require 'ostruct'
 require 'rqrcode'
 
 TEMPLATE_PATH = 'page.erb'
-SIZE = 5 # big enough for a 64-char string
 
 def gpg_decrypt(path)
   cmd = %w[gpg --decrypt]
@@ -16,7 +15,7 @@ def gpg_decrypt(path)
 end
 
 def qr(data)
-  RQRCode::QRCode.new(data, :size => SIZE, :level => :h)
+  RQRCode::QRCode.new(data, :level => :h)
 end
 
 def render_page(output_path, vars)
