@@ -28,10 +28,10 @@
     </style>
   </head>
   <body>
-<% secret_qrcodes.each do |name, data, qr| %>
+<% secrets.each do |name, raw_data, qr_code| %>
     <h1><%= name %></h1>
-    <pre><%= data %></pre>
-    <%= qr.as_html %>
+    <pre><%= raw_data %></pre>
+    <%= qr_code.as_html %>
 <% end %>
   </body>
 </html>

@@ -14,8 +14,26 @@ def gpg_decrypt(path)
   IO.popen(cmd) {|gpg| gpg.read }
 end
 
-def qr(data)
-  RQRCode::QRCode.new(data, :level => :h)
+def qr_data(value)
+  case value
+  when String
+    return value
+  when Hash
+    if value.size == 1
+      type, info = value.first
+      if %i[totp hotp].include?(type) && info.is_a?(Hash) && info.size == 1
+        label, params = info.first
+        return "otpauth://#{type}/#{label}?#{URI.encode_www_form(params)}"
+      end
+    end
+  end
+  STDERR.puts "Found an unrecognized #{value.class} value; encoding as a string (#{value})."
+  STDERR.puts "Please use a String or single-key Hash as described in the README."
+  value.to_s
+end
+
+def qr_code(value)
+  RQRCode::QRCode.new(qr_data(value), :level => :h)
 end
 
 def render_page(output_path, vars)
@@ -28,12 +46,13 @@ end
 
 ARGV.each do |path|
   begin
-    secrets = YAML.load(gpg_decrypt(path))
+    data = YAML.load(gpg_decrypt(path))
   rescue => err
     STDERR.puts "Error loading gpg output as YAML: #{err}"
     exit 1
   end
 
   output_path = path.sub(/\.yml\.gpg$/, '') + '.html'
-  render_page(output_path, :secret_qrcodes => secrets.map {|k, v| [k, v, qr(v)] })
+  secrets = data.map {|k, v| d = qr_data(v); [k, d, qr_code(d)] }
+  render_page(output_path, :secrets => secrets)
 end
