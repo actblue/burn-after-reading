@@ -2,6 +2,8 @@
 
 require 'erb'
 require 'yaml'
+require 'cgi'
+require 'uri'
 require 'ostruct'
 require 'rqrcode'
 
@@ -23,7 +25,7 @@ def qr_data(value)
       type, info = value.first
       if %i[totp hotp].include?(type) && info.is_a?(Hash) && info.size == 1
         label, params = info.first
-        return "otpauth://#{type}/#{label}?#{URI.encode_www_form(params)}"
+        return "otpauth://#{type}/#{CGI.escape(label)}?#{URI.encode_www_form(params)}"
       end
     end
   end
