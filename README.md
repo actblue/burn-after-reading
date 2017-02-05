@@ -35,11 +35,11 @@ There are two options for encrypting the YAML data, choose one:
 
  1. A private key in your keyring (recommended)
 
-        echo 'foo: abcdef1234567890' | gpg --encrypt --recipient USER_ID > my-secrets.yml.gpg
+        echo 'Foo: abcdef1234567890' | gpg --encrypt --recipient USER_ID > my-secrets.yml.gpg
 
  2. Symmetric encryption with only a passphrase
 
-        gpg -o my-secrets.yml.gpg --symmetric <(echo 'foo: abcdef1234567890')
+        gpg -o my-secrets.yml.gpg --symmetric <(echo 'Foo: abcdef1234567890')
 
 Open the HTML page in your browser:
 
@@ -47,6 +47,23 @@ Open the HTML page in your browser:
 
 This uses the environment variable `BURN_MAC_BROWSER` (default `Safari`)
 on macOS and `BROWSER` (default `xdg-open`) on other platforms.
+
+## Security Notes
+
+If your secrets are sensitive, you should avoid ever writing the
+unencrypted YAML to disk or leaving it in your shell's command history.
+You can accomplish this by:
+
+  * Using
+    [Emacs's built-in GPG support](https://www.gnu.org/software/emacs/manual/html_node/epa/Encrypting_002fdecrypting-gpg-files.html).
+    If you visit a new file with a name ending in `.gpg`, when you save
+    it, you'll be prompted to interactively select either recipient keys
+    or a symmetric passphrase.
+
+  * Adapting one of the example commands in the Usage section above to
+    read data from the clipboard (instead of `echo`ing the literal
+    YAML), and put data there from an unsaved scratch buffer in your
+    favorite editor.
 
 ## Running Tests
 
