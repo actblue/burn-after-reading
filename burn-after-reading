@@ -6,14 +6,22 @@ require 'cgi'
 require 'uri'
 require 'ostruct'
 require 'rqrcode'
+require 'base64'
 
 TEMPLATE_PATH = 'page.erb'
+MIN_SIZE = 400
 
 def gpg_decrypt(path)
   cmd = %w[gpg --decrypt]
   cmd += ENV['BURN_GPG_ARGS'].split if ENV['BURN_GPG_ARGS']
   cmd << path
   IO.popen(cmd) {|gpg| gpg.read }
+end
+
+def value_with_qr(value)
+  data = qr_data(value)
+  qr_code = RQRCode::QRCode.new(data)
+  [data, data_uri('image/png', qr_code.as_png(:resize_gte_to => MIN_SIZE).to_s)]
 end
 
 def qr_data(value)
@@ -34,27 +42,37 @@ def qr_data(value)
   value.to_s
 end
 
-def qr_code(value)
-  RQRCode::QRCode.new(qr_data(value), :level => :h)
+def data_uri(mime_type, data, base64=true)
+  "data:#{mime_type}" + (base64 ? ";base64,#{Base64.strict_encode64(data)}" : ",#{data}")
 end
 
-def render_page(output_path, vars)
+def render_page(vars)
   page_template = ERB.new(File.read(TEMPLATE_PATH), nil, '<>')
   vars_binding = OpenStruct.new(vars).instance_eval { binding }
-  File.open(output_path, 'w') do |f|
-    f.write page_template.result(vars_binding)
+  page_template.result(vars_binding)
+end
+
+def open_in_browser(uri)
+  # TODO: win32 support (from some cursory research, it looks like just
+  # passing a data: URI to `start` will not work)
+  if RUBY_PLATFORM =~ /darwin/
+    # open(1) doesn't understand data: URIs
+    app = ENV.fetch('BURN_MAC_BROWSER', 'Safari')
+    system 'osascript', *[%[tell application "#{app}"], %[open location "#{uri.gsub('"', '\"')}"], 'activate', 'end tell'].flat_map {|s| ['-e', s] }
+  else
+    cmd = ENV.fetch('BROWSER', 'xdg-open')
+    system cmd, uri
   end
 end
 
 ARGV.each do |path|
   begin
-    data = YAML.load(gpg_decrypt(path))
+    secrets = YAML.load(gpg_decrypt(path))
   rescue => err
     STDERR.puts "Error loading gpg output as YAML: #{err}"
     exit 1
   end
 
-  output_path = path.sub(/\.yml\.gpg$/, '') + '.html'
-  secrets = data.map {|k, v| d = qr_data(v); [k, d, qr_code(d)] }
-  render_page(output_path, :secrets => secrets)
+  html = render_page(:secrets => secrets.map {|k, v| [k, *value_with_qr(v)] })
+  open_in_browser(data_uri('text/html', html.gsub("\n", ''), false))
 end

@@ -41,10 +41,12 @@ There are two options for encrypting the YAML data, choose one:
 
         gpg -o my-secrets.yml.gpg --symmetric <(echo 'foo: abcdef1234567890')
 
-Generate the HTML page:
+Open the HTML page in your browser:
 
     bundle exec ./burn-after-reading my-secrets.yml.gpg
-    open my-secrets.html
+
+This uses the environment variable `BURN_MAC_BROWSER` (default `Safari`)
+on macOS and `BROWSER` (default `xdg-open`) on other platforms.
 
 ## Running Tests
 
