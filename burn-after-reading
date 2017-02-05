@@ -34,6 +34,9 @@ def qr_data(value)
       type, info = value.first
       if %i[totp hotp].include?(type) && info.is_a?(Hash) && info.size == 1
         label, params = info.first
+        # Work around a bug in Google Authenticator (other compatible
+        # apps do not seem to have any problem with Base32 padding)
+        params['secret'].gsub!(/=*$/, '')
         return "otpauth://#{type}/#{CGI.escape(label)}?#{URI.encode_www_form(params)}"
       end
     end
