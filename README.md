@@ -8,7 +8,13 @@ shards, etc.
 ## Usage
 
     bundle install
-    echo 'foo: 12345678901234567890' | gpg --encrypt > my-secrets.yml.gpg
+
+    # There are two options for encrypting the YAML data, choose one...
+    # 1. Recommended: a private key in your keyring
+    echo 'foo: 12345678901234567890' | gpg --encrypt --recipient USER_ID > my-secrets.yml.gpg
+    # 2. Symmetric encryption with only a passphrase
+    gpg -o my-secrets.yml.gpg --symmetric <(echo 'foo: 12345678901234567890')
+
     bundle exec ./burn-after-reading my-secrets.yml.gpg
     open my-secrets.html
 
