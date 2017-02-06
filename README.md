@@ -1,9 +1,12 @@
 # Burn After Reading
 
-A tiny script to generate a printable HTML page (with QR codes) to back up
+A small script to generate a printable HTML page (with QR codes) to back up
 your OTP secrets,
 [SSSS](https://en.wikipedia.org/wiki/Shamir%27s_Secret_Sharing) passphrase
 shards, etc.
+
+Secrets are never written unencrypted to disk; they're read from an encrypted
+file and the output is opened in your browser as a `data:text/html` URI.
 
 ## Input
 
@@ -50,20 +53,21 @@ on macOS and `BROWSER` (default `xdg-open`) on other platforms.
 
 ## Security Notes
 
-If your secrets are sensitive, you should avoid ever writing the
-unencrypted YAML to disk or leaving it in your shell's command history.
-You can accomplish this by:
+You should avoid creating a temporary YAML file on disk and then encrypting
+it, because then the unencrypted data will physically remain on the disk even
+after deleting the file. Also, don't use the example `echo | gpg` commands
+literally with real data, since they will be written to your shell history.
+Instead, try one of:
 
   * Using
     [Emacs's built-in GPG support](https://www.gnu.org/software/emacs/manual/html_node/epa/Encrypting_002fdecrypting-gpg-files.html).
-    If you visit a new file with a name ending in `.gpg`, when you save
-    it, you'll be prompted to interactively select either recipient keys
-    or a symmetric passphrase.
+    If you visit a new file with a name ending in `.gpg`, when you save it,
+    you'll be prompted to interactively select either recipient keys or a
+    symmetric passphrase.
 
-  * Adapting one of the example commands in the Usage section above to
-    read data from the clipboard (instead of `echo`ing the literal
-    YAML), and put data there from an unsaved scratch buffer in your
-    favorite editor.
+  * Adapting the example commands to read data from the system clipboard
+    (instead of `echo`ing the literal YAML), and put data there from an
+    unsaved scratch buffer in your favorite editor.
 
 ## Running Tests
 
