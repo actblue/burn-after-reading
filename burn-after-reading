@@ -59,7 +59,8 @@ end
 def open_in_browser(uri)
   # TODO: win32 support (from some cursory research, it looks like just
   # passing a data: URI to `start` will not work)
-  if RUBY_PLATFORM =~ /darwin/
+  platform = ENV.fetch('BURN_PLATFORM', RUBY_PLATFORM)
+  if platform =~ /darwin/
     # open(1) doesn't understand data: URIs
     app = ENV.fetch('BURN_MAC_BROWSER', 'Safari')
     system 'osascript', *[%[tell application "#{app}"], %[open location "#{uri.gsub('"', '\"')}"], 'activate', 'end tell'].flat_map {|s| ['-e', s] }
