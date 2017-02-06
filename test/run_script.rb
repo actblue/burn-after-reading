@@ -19,5 +19,6 @@ class TestBarScript < Minitest::Test
     assert_match %r[Acme Password], out
     assert_match %r[Acme 2FA], out
     assert_match %r[otpauth://totp/Acme], out
+    assert_empty err
   end
 end

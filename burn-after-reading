@@ -13,7 +13,7 @@ LONG_ARG = 2 ** 17
 MIN_PX = 400
 
 def gpg_decrypt(path)
-  cmd = %w[gpg --decrypt]
+  cmd = %w[gpg --decrypt --quiet]
   cmd += ENV['BURN_GPG_ARGS'].split if ENV['BURN_GPG_ARGS']
   cmd << path
   IO.popen(cmd) {|gpg| gpg.read }
