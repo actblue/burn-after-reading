@@ -19,13 +19,16 @@ def gpg_decrypt(path)
   IO.popen(cmd) {|gpg| gpg.read }
 end
 
-def value_with_qr(value)
-  data = qr_data(value)
-  qr_code = RQRCode::QRCode.new(data)
-  [data, data_uri('image/png', qr_code.as_png(:resize_gte_to => MIN_PX).to_s)]
+def format_secrets(services)
+  services.map do |name, info|
+    qr_data = gen_qr_data(info)
+    qr_code = RQRCode::QRCode.new(qr_data)
+    qr_uri = data_uri('image/png', qr_code.as_png(:resize_gte_to => MIN_PX).to_s)
+    [name, qr_data, qr_uri]
+  end
 end
 
-def qr_data(value)
+def gen_qr_data(value)
   case value
   when String
     return value
@@ -72,13 +75,14 @@ end
 
 ARGV.each do |path|
   begin
-    secrets = YAML.load(gpg_decrypt(path))
+    services = YAML.load(gpg_decrypt(path))
+    raise "Input did not contain a document" unless services
   rescue => err
     STDERR.puts "Error loading gpg output as YAML: #{err}"
     exit 1
   end
 
-  html = render_page(:secrets => secrets.map {|k, v| [k, *value_with_qr(v)] })
+  html = render_page(:secrets => format_secrets(services))
   uri = data_uri('text/html', html.gsub("\n", ''), false)
   if uri.size > LONG_ARG
     STDERR.puts "Warning: HTML data is large (#{uri.size} bytes). If you get an error"
